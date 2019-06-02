@@ -88,6 +88,7 @@ func main() {
 
 	http.HandleFunc("/", logEndpointHandler)
 	http.HandleFunc("/follow", serveHome)
+	http.HandleFunc("/delays", serveDelays)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, w, r)
 	})
@@ -236,6 +237,15 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.ServeFile(w, r, exePath+"/home.html")
+}
+
+func serveDelays(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, exePath+"/"+delayCsvFileName)
 }
 
 func sendLog(message string) {
