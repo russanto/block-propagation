@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"blocks"
@@ -19,17 +20,19 @@ var quitReader = make(chan os.Signal, 1)
 var clientType string
 
 func main() {
-	pServerEndpoint := flag.String("server", "http://localhost:80", "The log collector server. You must include also http:// and the port number")
+	pServerEndpoint := flag.String("server", "localhost:80", "The log collector server. You must include also http:// and the port number")
 	pClientName := flag.String("name", "NODE", "A custom name to assign to this node")
 	flag.Parse()
 	clientType = flag.Arg(0)
+
+	serverEndpoint := strings.Join([]string{"http://", *pServerEndpoint}, "")
 
 	fmt.Printf("Starting node with name %s\n", *pClientName)
 	time.Sleep(1 * time.Second)
 	entryChannel := make(chan *blocks.LogEntry, 10)
 	go reader(bufio.NewReader(os.Stdin), entryChannel)
-	go sender(*pServerEndpoint, *pClientName, entryChannel)
-	fmt.Printf("Sending logs to %s \n", *pServerEndpoint)
+	go sender(serverEndpoint, *pClientName, entryChannel)
+	fmt.Printf("Sending logs to %s \n", serverEndpoint)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
